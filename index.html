@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryGenic AI</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --primary-dark: #5649c0;
+            --secondary: #a29bfe;
+            --background: #f8f9fa;
+            --card: #ffffff;
+            --text: #2d3436;
+            --text-light: #636e72;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            transition: border 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        select {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: white;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 160px;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .audio-container {
+            margin-top: 30px;
+            background: #f1f3f5;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .audio-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .audio-controls button {
+            padding: 8px 16px;
+            min-width: auto;
+        }
+
+        .status {
+            margin-top: 20px;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status.success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            display: block;
+        }
+
+        .status.error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            display: block;
+        }
+
+        .status.info {
+            background-color: rgba(108, 92, 231, 0.1);
+            color: var(--primary);
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>StoryGenic AI</h1>
+            <p>Convert Text into beautiful stories</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-group">
+                <label for="text-input">Enter your text (max 2000 characters):</label>
+                <textarea id="text-input" placeholder="Type or paste the text you want to convert to speech here..." maxlength="2000"></textarea>
+                <div id="char-count" style="text-align: right; color: var(--text-light); font-size: 0.9rem;">0/2000</div>
+            </div>
+            
+            <div class="controls">
+                <select id="voice-select">
+                    <option value="alloy">Alloy (Default)</option>
+                    <option value="echo">Echo</option>
+                    <option value="fable">Fable</option>
+                    <option value="onyx">Onyx</option>
+                    <option value="nova">Nova</option>
+                    <option value="shimmer">Shimmer</option>
+                </select>
+                
+                <button id="generate-btn">
+                    <span id="button-text">Generate Speech</span>
+                    <span id="button-loader" class="loading" style="display: none;"></span>
+                </button>
+            </div>
+            
+            <div class="status" id="status-message"></div>
+            
+            <div class="audio-container" id="audio-container">
+                <audio controls id="audio-player" style="width: 100%;"></audio>
+                <div class="audio-controls">
+                    <button id="download-btn">Download MP3</button>
+                    <button id="copy-link-btn">Copy Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const textInput = document.getElementById('text-input');
+            const voiceSelect = document.getElementById('voice-select');
+            const generateBtn = document.getElementById('generate-btn');
+            const audioContainer = document.getElementById('audio-container');
+            const audioPlayer = document.getElementById('audio-player');
+            const statusMessage = document.getElementById('status-message');
+            const buttonText = document.getElementById('button-text');
+            const buttonLoader = document.getElementById('button-loader');
+            const downloadBtn = document.getElementById('download-btn');
+            const copyLinkBtn = document.getElementById('copy-link-btn');
+            const charCount = document.getElementById('char-count');
+            
+            let currentAudioUrl = null;
+            
+            // Character counter
+            textInput.addEventListener('input', function() {
+                charCount.textContent = `${this.value.length}/2000`;
+            });
+            
+            generateBtn.addEventListener('click', generateSpeech);
+            downloadBtn.addEventListener('click', downloadAudio);
+            copyLinkBtn.addEventListener('click', copyAudioLink);
+            
+            async function generateSpeech() {
+                const text = textInput.value.trim();
+                const voice = voiceSelect.value;
+                
+                if (!text) {
+                    showStatus('Please enter some text to convert to speech.', 'error');
+                    return;
+                }
+                
+                if (text.length > 2000) {
+                    showStatus('Text is too long (max 2000 characters).', 'error');
+                    return;
+                }
+                
+                // Show loading state
+                generateBtn.disabled = true;
+                buttonText.textContent = 'Generating...';
+                buttonLoader.style.display = 'inline-block';
+                showStatus('Processing your request...', 'info');
+                audioContainer.style.display = 'none';
+                
+                try {
+                    // Encode the text
+                    const encodedText = encodeURIComponent(text);
+                    
+                    // Construct the API URL
+                    const apiUrl = `https://text.pollinations.ai/${encodedText}?model=openai-audio&voice=${voice}`;
+                    
+                    // Fetch the audio
+                    const response = await fetch(apiUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+                    
+                    // Get the audio data
+                    const audioBlob = await response.blob();
+                    currentAudioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // Set the audio source and show the player
+                    audioPlayer.src = currentAudioUrl;
+                    audioContainer.style.display = 'block';
+                    
+                    showStatus('Speech generated successfully!', 'success');
+                } catch (error) {
+                    console.error('Error generating speech:', error);
+                    showStatus(`Error: ${error.message}`, 'error');
+                } finally {
+                    // Reset button state
+                    generateBtn.disabled = false;
+                    buttonText.textContent = 'Generate Speech';
+                    buttonLoader.style.display = 'none';
+                }
+            }
+            
+            function downloadAudio() {
+                if (!currentAudioUrl) return;
+                
+                const a = document.createElement('a');
+                a.href = currentAudioUrl;
+                a.download = `tts-${voiceSelect.value}-${Date.now()}.mp3`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                showStatus('Download started...', 'success');
+            }
+            
+            async function copyAudioLink() {
+                if (!currentAudioUrl) return;
+                
+                try {
+                    // Create a more permanent link if needed
+                    // In a real app, you might upload to a storage service
+                    await navigator.clipboard.writeText(currentAudioUrl);
+                    showStatus('Audio link copied to clipboard!', 'success');
+                } catch (err) {
+                    console.error('Failed to copy link:', err);
+                    showStatus('Failed to copy link', 'error');
+                }
+            }
+            
+            function showStatus(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = 'status';
+                statusMessage.classList.add(type);
+            }
+            
+            // Clean up object URLs when leaving the page
+            window.addEventListener('beforeunload', function() {
+                if (currentAudioUrl) {
+                    URL.revokeObjectURL(currentAudioUrl);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
